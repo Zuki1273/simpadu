@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Prodi;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class MahasiswaController extends Controller
 {
@@ -35,7 +37,37 @@ class MahasiswaController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->except('_token');
+        $validateData =  $request->validate(
+            [
+                'nim' => 'required|unique:mahasiswa|max:10',
+                'password' => 'required',
+                'nama' => 'required|max:50',
+                'tanggal_lahir' => 'required|date',
+                'nomor_telepon' => 'required',
+                'email' => 'required|email',
+                'foto' => 'image|mimes:jpeg,png,jpg,svg'
+            ],
+            [
+                'nim.required' => 'NIM harus diisi',
+                'nim.unique' => 'NIM sudah terdaftar',
+                'nim.max' => 'NIM maksimal 10 karakter',
+                'password.required' => 'Password harus diisi',
+                'nama.required' => 'Nama harus diisi',
+                'nama.max' => 'Nama maksimal 50 karakter',
+                'tanggal_lahir.required' => 'Tanggal lahir harus diisi',
+                'nomor_telepon.required' => 'Nomor telepon harus diisi',
+                'email.required' => 'Email harus diisi',
+                'email.email' => 'Format email tidak valid',
+                'foto.image' => 'File harus berupa gambar',
+                'foto.mimes' => 'Format gambar harus jpeg, png, jpg, atau svg'
+            ]
+        );
+
+        if ($request->file('foto')) {
+            $validateData['foto'] = $request->file('foto')->store('images');
+        }
+        $validateData['password'] = Hash::make($validateData['password']);
+        $data=array_merge($validateData,$request->only(['id_prodi']));
         Mahasiswa::create($data);
         return redirect('/mahasiswa');
     }
@@ -54,6 +86,11 @@ class MahasiswaController extends Controller
     public function edit(string $id)
     {
         //
+        $data = ['nama' => "Zuki", 'foto' => 'avatar5.png'];
+        $mahasiswa = Mahasiswa::find($id);
+        $prodi = Prodi::all();
+        return view('mahasiswa.edit', compact('data','mahasiswa', 'prodi'));
+        
     }
 
     /**
@@ -62,6 +99,37 @@ class MahasiswaController extends Controller
     public function update(Request $request, string $id)
     {
         //
+                $validateData =  $request->validate(
+            [
+                'nama' => 'required|max:50',
+                'tanggal_lahir' => 'required|date',
+                'nomor_telepon' => 'required',
+                'email' => 'required|email',
+                'foto' => 'image|mimes:jpeg,png,jpg,svg'
+            ],
+            [
+                'nama.required' => 'Nama harus diisi',
+            ]
+        );
+
+        $mahasiswa = Mahasiswa::where('nim',$id)->first();
+        if (!$mahasiswa) {
+    abort(404, 'Mahasiswa tidak ditemukan');
+}
+        if ($request->file('foto')) {
+            if ($mahasiswa->foto) {
+                Storage::delete($mahasiswa->foto);
+            }
+            $validateData['foto'] = $request->file('foto')->store('images');
+        }
+
+        if ($request->input(['password'])) {
+            $validateData['password'] = Hash::make($request->password);
+        }
+
+        $data=array_merge($validateData, $request->only(['id_prodi']));
+        Mahasiswa::where('nim', $id)->update($data);
+        return redirect('/mahasiswa');
     }
 
     /**
@@ -70,5 +138,11 @@ class MahasiswaController extends Controller
     public function destroy(string $id)
     {
         //
+        $mahasiswa = Mahasiswa::find($id);
+        if ($mahasiswa->foto) {
+            Storage::delete($mahasiswa->foto);
+        }
+        Mahasiswa::destroy($id);
+        return redirect('/mahasiswa');
     }
 }

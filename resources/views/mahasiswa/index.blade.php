@@ -13,7 +13,7 @@
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item active" aria-current="page">Data Mahasiswa</li>
-                  <li class="breadcrumb-item"><a href="prodi.php">Program Studi</a></li>
+                  <li class="breadcrumb-item"><a href="/prodi">Program Studi</a></li>
                 </ol>
               </div>
             </div>
@@ -32,7 +32,7 @@
                 <div class="card mb-4">
                   <div class="card-header"><h3 class="card-title">Data Mahasiswa</h3>
                     <div class="card-tools">
-                    <a href="tambahmahasiswa.php" class="btn btn-primary">Tambah</a>
+                    <a href="mahasiswa/create" class="btn btn-primary">Tambah</a>
                     </div>
                   </div>
                   <!-- /.card-header -->
@@ -60,10 +60,15 @@
                             <td>{{ $z->nomor_telepon }}</td>
                             <td>{{ $z->email }}</td>
                             <td>{{ $z->prodi->nama }}</td>
-                            <td><a href="deletemahasiswa.php?nim={{ $z->nim }}"
-                            onclick="return confirm('Yakin ingin hapus?')"
-                            class="btn btn-danger">Delete</a> <a 
-                            href="editmahasiswa.php?nim={{ $z->nim }}"
+                            <td>
+                            <form action="{{ url("mahasiswa/$z->nim") }}" method="post"
+                              class="d-inline">
+                              @method('delete')
+                              @csrf
+                              <button type="submit" class="btn btn-danger"
+                              onclick="return confirm('Yakin ingin menghapus data ini?')">Hapus</button>
+                            </form>
+                            <a href="{{ url("mahasiswa/$z->nim/edit") }}"
                             class="btn btn-warning">Edit</a></td>
                         </tr>
                         @endforeach
