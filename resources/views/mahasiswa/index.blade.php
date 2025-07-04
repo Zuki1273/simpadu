@@ -47,6 +47,7 @@
                             <th>Nomor Telepon</th>
                             <th>Email</th>
                             <th>Prodi</th>
+                            <th>Foto</th>
                             <th>Aksi</th>
                         </tr>
                       </thead>
@@ -60,6 +61,12 @@
                             <td>{{ $z->nomor_telepon }}</td>
                             <td>{{ $z->email }}</td>
                             <td>{{ $z->prodi->nama }}</td>
+                            <td>
+                                <img src="{{ $z->foto ? asset('storage/' . $z->foto) : asset('img/default.png') }}"
+                                      alt="Foto Mahasiswa"
+                                      width="60"
+                                      class="img-thumbnail">
+                            </td>
                             <td>
                             <form action="{{ url("mahasiswa/$z->nim") }}" method="post"
                               class="d-inline">
